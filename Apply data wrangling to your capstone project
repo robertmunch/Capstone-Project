@@ -1,0 +1,141 @@
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(readxl)
+
+#Loading Snow Water Equivalent data from .txt file.
+PrecipData <- read_csv("~/R/Capstone Project/PrecipData.txt", 
+                       comment = "#")
+
+#Removing the rows that contain incomplete data since giving them zeros would affect the final data.
+#Numbering the months rather than names, and placing all the month values into their own column.
+#Renaming station id and station name to be without spaces.
+#filtering to only years 1980 to 2017, the first and last years with complete years worth of data.
+#arranging by year to appear chronological.
+PrecipData <- PrecipData %>%
+  na.omit(PrecipData) %>%
+  rename("01" = Jan, "02" = Feb , "03" = Mar, "04" = Apr, "05" = May, "06" = Jun, "07" = Jul, "08" = Aug, "09" = Sep, "10" = Oct, "11" = Nov, "12" = Dec) %>%
+  rename(Station.Id = "Station Id", Station.Name = "Station Name") %>% 
+  gather("Month", "SWE.mm", 4:15) %>% 
+  filter(Year >= 1980 & Year <= 2017) %>%
+  arrange(Year)
+
+#Aggregating SWE data by Year, rewuiring SWE and Year to be numerics.
+#Renaming columns, as names are lost in aggregating process.
+SWE.year.agg <- aggregate(as.numeric(PrecipData$SWE.mm), list(as.numeric(PrecipData$Year)), mean)
+colnames(SWE.year.agg) <- c("Year", "SWE.mm.Avg")
+
+#Aggregating SWE data by month and Year, allowing data to be aggregated across all stations.
+PrecipData.combine.date <- PrecipData %>% 
+  unite("Date", "Year", "Month", sep = "-") %>% 
+  arrange(Date)
+PrecipData.station.agg <- aggregate(as.numeric(PrecipData.combine.date$SWE.mm), list(PrecipData.combine.date$Date), mean)
+colnames(PrecipData.station.agg) <- c("Date", "SWE.mm")
+PrecipData.station.agg <- separate(PrecipData.station.agg, "Date", c("Year", "Month"), sep = "-")
+
+#Showing 1981 is not an outlier
+PrecipData.1981 <- PrecipData %>% 
+  filter(Year == 1981) %>% 
+  arrange(Station.Id) %>% 
+  distinct(Station.Id) %>% 
+  as.vector()
+
+PrecipData.outlier <- PrecipData %>% 
+  filter(Station.Id %in% unlist(PrecipData.1981))
+
+PrecipData.outlier <- aggregate(as.numeric(PrecipData.outlier$SWE.mm), list(as.numeric(PrecipData.outlier$Year)), FUN = mean)  
+colnames(PrecipData.outlier) <- c("Year", "SWE.mm.Avg.outlier")
+
+PrecipData.outlier <- PrecipData.outlier %>%   
+  bind_cols(station.agg) %>% 
+  select(Year, SWE.mm.Avg.outlier, SWE.mm.Avg)
+
+#Importing atmospheric CO2 data from NOAA.
+noaa.co2 <- read_table2("~/R/Capstone Project/noaa.co2.txt", 
+                        col_names = FALSE, comment = "#")
+
+#Naming columns that will be used.
+#Removing data from outside the SWE data timeline.
+
+noaa.co2 <- noaa.co2 %>% 
+  rename(Year = X1, Month = X2, Interpolated.ppm = X5) %>% 
+  filter(Year >= 1980 & Year <= 2017)
+
+#Combine PrecipData.station.agg and noaa.co2 as a way to compare co2 ppm and SWE 
+combine.data <- bind_cols(PrecipData.station.agg, noaa.co2) %>% 
+  select("Year", "Month", "SWE.mm", "Interpolated.ppm")
+
+#aggregting average co2 ppm by year
+co2.year.agg <- aggregate(noaa.co2$Interpolated.ppm, list(noaa.co2$Year), mean)
+colnames(co2.year.agg) <- c("Year", "co2.ppm.Avg")
+
+#combing yearly averages for SWE and CO2 to make a corealtion
+SWE.co2.year.agg <- SWE.year.agg %>%
+  bind_cols(co2.year.agg) %>%
+  select(c(1,2,4))
+
+#visitor data taken from National Ski Area Association.
+ski.visits <- read.csv("~/R/Capstone Project/Ski visit data.csv")
+
+#Renaming columns
+#Becasue column name was changed from Visitor(millions), value must be changed as well. 
+#Removing years outside data window.
+colnames(ski.visits) <- c("Year", "Visitors")
+ski.visits <- ski.visits %>%
+  mutate(Visitors = Visitors * 1e06) %>% 
+  arrange(Year) %>% 
+  filter(Year >= 1980)
+
+#Combining visitors into data table with CO2 and SWE data. 
+combine.all <-cbind(SWE.co2.year.agg, ski.visits$Visitors)
+colnames(combine.all) <- c("Year", "SWE.mm", "CO2.ppm", "Visitors")
+
+#Comparing residuals of linear model of visitors and SWE to find correlation. 
+#Making linear model of residuals of visitors and SWE
+lm.visitors <- lm(Visitors ~ Year, combine.all)
+res.lm.visitors <- residuals(lm.visitors)
+summary(lm.visitors)
+checkresiduals(lm.visitors)
+
+lm.SWE.year <- lm(SWE.mm ~ Year, combine.all)
+res.lm.SWE.year <- residuals(lm.SWE.year)
+summary(lm.SWE.year)
+checkresiduals(lm.SWE.year)
+
+ts.SWE.res <- ts(res.lm.SWE.year, start = 1980)
+ts.visit.res <- ts((res.lm.visitors / 1e05), start = 1980)
+SWE.Visit.res <- cbind(ts.SWE.res, ts.visit.res)
+summary(SWE.Visit.res)
+
+#Import excel with spending data in Mountain Resort Region in CO, numbers in billions of US dollars. 
+CO.tourism <- read_excel("CO tourism finacial data.xlsx")
+
+#Changing tourism money to dollars
+#Arranging Chronologically
+CO.tourism <- CO.tourism %>% 
+  mutate(Spending = Spending * 1e07) %>% 
+  arrange(Year)
+
+lm.tourism <- lm(Spending ~ Year, CO.tourism)
+res.lm.tourism <- residuals(lm.tourism)
+summary(lm.tourism)
+checkresiduals(lm.tourism)
+ts.res.lm.tourism <- ts(res.lm.tourism, start = 1996)
+
+#Because tourism spending data is only from 1996, other data must be restricted to include data from 1996 to 2017.  
+combine.all.tourism <- combine.all %>% 
+  arrange(Year) %>% 
+  filter(Year >= 1996)
+combine.all.tourism <- cbind(combine.all.tourism, CO.tourism$Spending)
+colnames(combine.all.tourism) <- c("Year", "SWE.mm", "CO2.ppm", "Visitors", "Spending")
+
+#Making a time sereies to combare all residuals 
+res.all <- 
+  ts(cbind(
+        residuals(lm(SWE.mm ~ Year, combine.all.tourism)),
+        residuals(lm(CO2.ppm ~ Year, combine.all.tourism)),
+        residuals(lm(Visitors ~ Year, combine.all.tourism)),
+        residuals(lm(Spending ~ Year, combine.all.tourism))),
+          start = 1996)
+colnames(res.all) <- c("SWE.Residuals", "CO2.Residuals", "Visitors.Residuals", "Spending.Residuals")
