@@ -1,0 +1,39 @@
+---
+title: "Capstone Project Proposal"
+author: "Robert Munch"
+date: "October 28, 2018"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+##What is the problem you want to solve?
+
+With the true impact of rising greehouse gas emissions being unknown and far reaching, I wanted to look at the effect of glabal climate change on a smaller and more localized level. As a native of Colorado in the United States, the seasonal changes of snow in higher elevations meant changes from summer to winter activities, and I wanted to look at the ties between increasing CO2 levels in the atmosphere and snow fall totals in Colorado. This has a large impact in the Colorado economy, as ski tourism is a main reason people travel all over the world to visit Colorado and its many well renown ski areas. 
+
+##Who is your client and why do they care about this problem?
+
+My client will be anyone who is interested in how the changing climate affects the snowfall in Colorado. Primarily, the main people who are to be most directly impacted are Colorado elected officials and buissness groups tied to the ski area economy, such as companies running Colorado based ski resorts and employees of these ski resorts. Similarily, anyone who has a fincancial stake in the tourism indusrty of COlorado, such as hotel and restaurant owners in these ski towns. Finally, anyone who enjoys skiing or snowboarding as a recreational winter activity. 
+
+##What data are you going to use for this? How will you acquire this data?
+
+I plan to use Snow Water Equivelency data obtained from the National Resource Conservation Service (NRCS) Snow Telemetry (SNOTEL) data sets to gather snow fall data for the state of Colorado over all years that data is available. <https://www.wcc.nrcs.usda.gov/snow/>.
+Data will be from all Colorado sites and measured by end of month sum total. 
+
+Atmospheric CO2 levels will be obtained from NOAA Earth System Research Laboratory.   
+<ftp://aftp.cmdl.noaa.gov/products/trends/co2/co2_mm_mlo.txt>
+
+Because of guarding of visitor data collected by indiviadual ski resorts, visitor data will be for the rocky mountain region, meant to act as a corelary for Colorado, as it is a major state for ski areas in the rocky mountain region. Visitor data will be obtained from  the Kottke National End of Season Survey 2017/18, and dispersed by the National Ski Area Association. <http://www.nsaa.org/media/303945/visits.pdf> 
+
+Tourist data for the state of Colorado will be maually scrapped from the website of Dean Runyan & Associates. A company contracted by the state of Colorado to gather tourism data. <http://www.deanrunyan.com/COTravelImpacts/COTravelImpacts.html>
+
+##In brief, outline your approach to solving this problem (knowing that this might change later).
+My outline will be to use data from the NRCS to find average monthly snowfall data for the state of Colorado. Then I will compare the average snowfall data to the average atomspheric CO2 levels gathered from NOAA to see if there is or is not a coorelation between atmospheric CO2 levels and snowfall amount. 
+If there is a  negative coorelation I will then gauge if there is a coorelation between snowfall and ski area visitors. If there is a positive coorelation, I will then gauge the loss of visitors to Colorado based on historic snowfall data and visitor levels. From the visitor levels I will then gauge the amount of monetary loss from lower snow levels, and thus coorelate higher atmoshperic CO2 levels with loss of revenue from ski tourism. 
+
+##What are your deliverables?
+
+Deliverables will be initail data sets along with modified data sets that combine and aggregate important data. 
+From these data sets, graphs visually showing average snowfall data, atmospheric CO2 data, coorelation between these values, visitor data coorelated with snowfall amount and financial losses. 
+Also, a paper covering all data sources, process for cleaning up data and arguments for interpretation of all data sets along with final results will be icluded. 
+A slide deck with all relevent information will also be included. 
