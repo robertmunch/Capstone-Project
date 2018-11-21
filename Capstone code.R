@@ -212,3 +212,57 @@ summary(lm(Visitors ~ SWE, delta.all))
 
 #ggpairs of year aggregates for SWE, CO2, Visitors
 ggpairs(combine.all[,2:4])
+
+#Loading data of CO2 emissions from 2005 to 2015 for all states and naming columns
+state_CO2_emissions <- read_excel("state CO2 emisssions.xlsx", 
+                                  sheet = "Sheet1", col_names = c("State", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "Change.Percent", "Change.Abs"))
+
+state_CO2_emissions$Change.Percent <- as.numeric(state_CO2_emissions$Change.Percent)
+
+#Cleaning up state emissions data to remove NAs and removing old title column
+state_CO2_emissions <- state_CO2_emissions %>% 
+  na.omit(state_CO2_emissions) %>% 
+  slice(2:52) %>% 
+  arrange(Change.Percent)
+
+
+#plot to show COlorados high change compared to all other states
+ggplot(state_CO2_emissions, aes(State, Change.Percent)) +
+  geom_col(aes(fill = ifelse(State == "Colorado", "Colorado", NA))) +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank()) +
+  labs(title = "Change in Carbon Dioxide emissions 2005-2015")
+
+
+#Importing per capita emissions data
+per_capita_emissions <- read_excel("per capita emissions.xlsx", 
+                                   col_names = c("State", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "Change.Percent", "Change.Abs"))
+per_capita_emissions <- per_capita_emissions %>% 
+  na.omit(per_capita_emissions) %>% 
+  slice(2:52) %>% 
+  arrange(Change.Percent)
+per_capita_emissions$Change.Percent <- as.numeric(per_capita_emissions$Change.Percent)
+
+
+#Showing Colorado's relative low change to other states
+ggplot(per_capita_emissions, aes(State, Change.Percent)) +
+  geom_col(aes(fill = ifelse(State == "Colorado", "Colorado", NA))) +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank()) +
+  labs(title = "Per-capita change in Carbon Dioxide Emissions 2005-2015")
+
+
+#Doing same for maine to show comparison in states ranking of carbon emissions
+ggplot(state_CO2_emissions, aes(State, Change.Percent)) +
+  geom_col(aes(fill = ifelse(State == "Maine", "Colorado", NA))) +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank()) +
+  labs(title = "Change in Carbon Dioxide emissions 2005-2015")
+
+ggplot(per_capita_emissions, aes(State, Change.Percent)) +
+  geom_col(aes(fill = ifelse(State == "Maine", "Colorado", NA))) +
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank()) +
+  labs(title = "Per-capita change in Carbon Dioxide Emissions 2005-2015")
